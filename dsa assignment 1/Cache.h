@@ -18,7 +18,7 @@ class Cache {
         int p;
 	public:
     
-    Node *Foundingroot;
+    Node *Foundingroot = new Node;
     Cache(int s) {
         arr = new Elem*[s];
         p = 0;
