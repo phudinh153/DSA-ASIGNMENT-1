@@ -22,10 +22,11 @@ Data* Cache::read(int addr) { //trả về dữ liệu được lưu tại đị
     return NULL;
 }
 
-void Deletenode(Node *root, int key){
-    if(root == nullptr) return;
-    else if(root->pro->addr > key) Deletenode(root->left, key);
-    else if(root->pro->addr < key) Deletenode(root->right, key);
+Node* Deletenode(Node *root, int key){
+    //if(root == nullptr) return root;
+    //root->pro->print();
+    if(root->pro->addr > key) root->left = Deletenode(root->left, key);
+    else if(root->pro->addr < key) root->right = Deletenode(root->right, key);
     else{
         if(root->left == nullptr && root->right == nullptr){
             delete root;
@@ -51,9 +52,12 @@ void Deletenode(Node *root, int key){
                 p = p->left;
             }
             root->pro->data = p->pro->data;
-            Deletenode(root->right, p->pro->addr);
+            root->right = Deletenode(root->right, p->pro->addr);
         }
     }
+
+    return root;
+
 }
 
 Node* SearchTree(int addr, Node *root){
@@ -91,15 +95,22 @@ Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache
 
     if(p == 15){
         if(addr % 2 == 0){  //FIFO
-            Node *root = this->Foundingroot;
-            Deletenode(root, root->pro->addr);
+            Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
+            root = Deletenode(root, root->pro->addr);
+            this->Foundingroot = root;
+            for(int i = 1; i < p; i++){
+                this->arr[i - 1] = this->arr[i];
+            }
+            root->pro->print();
+            this->p--;
+            return del;
         }
         else{               //LIFO
-            Node *root = this->Foundingroot;
-            Deletenode(root, arr[14]->addr);
-        }
-        this->p--;
-        return this->arr[14];
+            Elem *del = new Elem(this->arr[14]->addr, this->arr[14]->data, this->arr[14]->sync);
+            root = Deletenode(root, arr[14]->addr);
+            this->p--;
+            return del;
+        } 
     }
     return NULL;
 }
@@ -130,15 +141,22 @@ Elem* Cache::write(int addr, Data* cont) {
         this->p++;
         if(p == 15){
             if(addr % 2 == 0){  //FIFO
-                Node *root = this->Foundingroot;
-                Deletenode(root, root->pro->addr);
+                Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
+                root = Deletenode(root, root->pro->addr);
+                this->Foundingroot = root;
+                for(int i = 1; i < p; i++){
+                    this->arr[i - 1] = this->arr[i];
+                }
+                root->pro->print();
+                this->p--;
+                return del;
             }
             else{               //LIFO
-                Node *root = this->Foundingroot;
-                Deletenode(root, arr[14]->addr);
-            }
-            this->p--;
-            return this->arr[14];
+                Elem *del = new Elem(this->arr[14]->addr, this->arr[14]->data, this->arr[14]->sync);
+                root = Deletenode(root, arr[14]->addr);
+                this->p--;
+                return del;
+            } 
         }
     }
 
