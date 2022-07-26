@@ -2,7 +2,7 @@
 
 
 Data* Cache::read(int addr) { //trả về dữ liệu được lưu tại địa chỉ addr nếu addr được lưu tại cache, ngược lại trả về NULL
-    cout << "1" << endl;
+    //cout << "1" << endl;
     Node *root = this->Foundingroot;
     if(p == 0){
         return NULL;
@@ -56,38 +56,36 @@ void Deletenode(Node *root, int key){
     }
 }
 
-Node *FindParent(int ad, Node *root){
-    if(root->left == nullptr || root->right == nullptr){
+Node* SearchTree(int addr, Node *root){
+    if(root == nullptr || root->pro == nullptr){
         return root;
     }
-    else if(root->pro->addr > ad) {
-        root->left = FindParent(ad, root->left);
+    else if(root->pro != nullptr){ 
+        if(root->pro->addr == addr){
+                return root;
+        }
     }
-    else{
-        root->right = FindParent(ad, root->right);
+    else if(root->pro->addr > addr){
+        return SearchTree(addr, root->left);
     }
+    else if(root->pro->addr < addr){
+        return SearchTree(addr, root->right);
+    }   
 }
 
 Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache và trả về phần tử bị đưa ra khỏi cache nếu có, ngược lại trả về NULL.
-    cout << "2" << endl;    
+    //cout << "2" << endl;    
     Node *root = this->Foundingroot;    
     if(this->p == 0){
         root->pro = new Elem(addr, cont, 1);
         this->arr[this->p] = root->pro;
     }
     else{
-        root = FindParent(addr, root);
         Node *newnode = new Node;
         newnode->pro = new Elem(addr, cont, 1);
-        if(root->pro->addr > addr){
-            root->left = newnode;
-            root = root->left;
-        }
-        else if(root->pro->addr < addr){
-            root->right = newnode;
-            root = root->right;
-        }
-        this->arr[this->p] = root->pro;
+        root = FindParent(addr, root, newnode);
+        //root = SearchTree(addr, root);
+        //this->arr[this->p] = root->pro;
     }
     this->p++;
 
@@ -106,25 +104,8 @@ Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache
     return NULL;
 }
 
-Node* SearchTree(int addr, Node *root){
-    if(root == nullptr || root->pro == nullptr){
-        return root;
-    }
-    else if(root->pro != nullptr){ 
-        if(root->pro->addr == addr){
-                return root;
-        }
-    }
-    else if(root->pro->addr > addr){
-        return SearchTree(addr, root->left);
-    }
-    else if(root->pro->addr < addr){
-        return SearchTree(addr, root->right);
-    }   
-}
-
 Elem* Cache::write(int addr, Data* cont) {
-    cout << "3" << endl;
+    //cout << "3" << endl;
     Node *root = this->Foundingroot;
     root = SearchTree(addr, root);
     if(root){         //if found addr
@@ -140,18 +121,11 @@ Elem* Cache::write(int addr, Data* cont) {
             this->arr[this->p] = root->pro;
         }
         else{
-            root = FindParent(addr, root);
             Node *newnode = new Node;
             newnode->pro = new Elem(addr, cont, 0);
-            this->arr[this->p] = newnode->pro;
-            if(root->pro->addr > addr){
-                root->left = newnode;
-                root = root->left;
-            }
-            else if(root->pro->addr < addr){
-                root->right = newnode;
-                root = root->right;
-            }
+            root = FindParent(addr, root, newnode);
+            //root = SearchTree(addr, root);
+            //this->arr[this->p] = newnode->pro;
         }
         this->p++;
         if(p == 15){
@@ -187,7 +161,7 @@ void printCayhaila(Node *t){
 
 void Cache::preOrder() {
 	Node *root = this->Foundingroot;
-    //printCayhaila(root);
+    printCayhaila(root);
 }
 
 void Cache::inOrder() {
