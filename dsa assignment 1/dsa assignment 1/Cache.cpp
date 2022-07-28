@@ -3,7 +3,7 @@
 
 Data* Cache::read(int addr) { //trả về dữ liệu được lưu tại địa chỉ addr nếu addr được lưu tại cache, ngược lại trả về NULL
     //cout << "1" << endl;
-    Node *root = this->Foundingroot;
+    //Node *root = this->Foundingroot;
     if(p == 0){
         return NULL;
     }
@@ -13,6 +13,8 @@ Data* Cache::read(int addr) { //trả về dữ liệu được lưu tại đị
         }
     }*/
     else{
+        //cout <<"bug: ";
+        //root->pro->print();
         for(int i = 0; i < p; i++){
             if(this->arr[i]->addr == addr){
                 return this->arr[i]->data;
@@ -60,23 +62,6 @@ Node* Deletenode(Node *root, int key){
 
 }
 
-Node* SearchTree(int addr, Node *root){
-    if(root == nullptr || root->pro == nullptr){
-        return root;
-    }
-    else if(root->pro != nullptr){ 
-        if(root->pro->addr == addr){
-                return root;
-        }
-    }
-    else if(root->pro->addr > addr){
-        return SearchTree(addr, root->left);
-    }
-    else if(root->pro->addr < addr){
-        return SearchTree(addr, root->right);
-    }   
-}
-
 Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache và trả về phần tử bị đưa ra khỏi cache nếu có, ngược lại trả về NULL.
     //cout << "2" << endl;    
     Node *root = this->Foundingroot;    
@@ -92,7 +77,6 @@ Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache
         //this->arr[this->p] = root->pro;
     }
     this->p++;
-
     if(p == 15){
         if(addr % 2 == 0){  //FIFO
             Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
@@ -101,7 +85,7 @@ Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache
             for(int i = 1; i < p; i++){
                 this->arr[i - 1] = this->arr[i];
             }
-            root->pro->print();
+            //root->pro->print();
             this->p--;
             return del;
         }
@@ -115,48 +99,71 @@ Elem* Cache::put(int addr, Data* cont) {  //đưa addr và data vào trong cache
     return NULL;
 }
 
-Elem* Cache::write(int addr, Data* cont) {
-    //cout << "3" << endl;
-    Node *root = this->Foundingroot;
-    root = SearchTree(addr, root);
-    if(root){         //if found addr
-        if(root->pro){
-            root->pro->data = cont;
-            root->pro->sync = 0;
+/*void SearchTree(int addr, Node *root){
+    if(root->pro != nullptr){ 
+        if(root->pro->addr == addr){
+            root->pro->print();
+            return;
         }
     }
-    else{                   //not found addr
-        root = this->Foundingroot;
-        if(this->p == 0){
-            root->pro = new Elem(addr, cont, 0);
-            this->arr[this->p] = root->pro;
+    else if(root->pro->addr > addr){
+        SearchTree(addr, root->left);
+    }
+    else if(root->pro->addr < addr){
+        SearchTree(addr, root->right);
+    }  
+    return;
+}*/
+
+Elem* Cache::write(int addr, Data* cont) {
+    //cout << "3" << endl;
+    Node *root = this->Foundingroot; 
+    if(this->p == 0){
+        root->pro = new Elem(addr, cont, 0);
+        this->arr[this->p] = root->pro;
+        this->p++;
+    }
+    else{
+        int k;  
+        for(k = 0; k < p; k++){
+            if(this->arr[k] != nullptr){
+                if(this->arr[k]->addr == addr){
+                    break;
+                }
+            }
+        }     
+        
+        if(this->arr[k] != nullptr && this->arr[k]->addr == addr){        //if found addr
+                    this->arr[k]->data = cont;
+                    this->arr[k]->sync = 0;
         }
-        else{
+        else{                   //not found addr
+            root = this->Foundingroot;
             Node *newnode = new Node;
             newnode->pro = new Elem(addr, cont, 0);
             root = FindParent(addr, root, newnode);
-            //root = SearchTree(addr, root);
-            //this->arr[this->p] = newnode->pro;
-        }
-        this->p++;
-        if(p == 15){
-            if(addr % 2 == 0){  //FIFO
-                Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
-                root = Deletenode(root, root->pro->addr);
-                this->Foundingroot = root;
-                for(int i = 1; i < p; i++){
-                    this->arr[i - 1] = this->arr[i];
+                //root = SearchTree(addr, root);
+                //this->arr[this->p] = newnode->pro;
+            this->p++;
+            if(p == 15){
+                if(addr % 2 == 0){  //FIFO
+                    Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
+                    root = Deletenode(root, root->pro->addr);
+                    this->Foundingroot = root;
+                    for(int i = 1; i < p; i++){
+                        this->arr[i - 1] = this->arr[i];
+                    }
+                    //root->pro->print();
+                    this->p--;
+                    return del;
                 }
-                root->pro->print();
-                this->p--;
-                return del;
+                else{               //LIFO
+                    Elem *del = new Elem(this->arr[14]->addr, this->arr[14]->data, this->arr[14]->sync);
+                    root = Deletenode(root, arr[14]->addr);
+                    this->p--;
+                    return del;
+                } 
             }
-            else{               //LIFO
-                Elem *del = new Elem(this->arr[14]->addr, this->arr[14]->data, this->arr[14]->sync);
-                root = Deletenode(root, arr[14]->addr);
-                this->p--;
-                return del;
-            } 
         }
     }
 

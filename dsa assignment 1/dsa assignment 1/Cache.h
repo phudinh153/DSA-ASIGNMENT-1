@@ -38,6 +38,7 @@ class Cache {
                 else if(root->pro->addr < ad) {
                 root->right = FindParent(ad, root->right, newnode);
                 }
+                return root;
             }
         }
 		Data* read(int addr);
