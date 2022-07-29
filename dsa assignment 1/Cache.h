@@ -26,6 +26,21 @@ class Cache {
     ~Cache() {
         delete[] arr;
     }
+        Node *FindParent(int ad, Node *root, Node *newnode){
+            if(root == nullptr){
+                    this->arr[this->p] = newnode->pro;
+                    return newnode;      
+            }
+            else {
+                if(root->pro->addr > ad) {     
+                root->left = FindParent(ad, root->left, newnode);
+                }
+                else if(root->pro->addr < ad) {
+                root->right = FindParent(ad, root->right, newnode);
+                }
+                return root;
+            }
+        }
 		Data* read(int addr);
 		Elem* put(int addr, Data* cont);
 		Elem* write(int addr, Data* cont);
