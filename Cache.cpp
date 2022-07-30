@@ -68,6 +68,10 @@ Elem* Cache::put(int addr, Data* cont) {
         this->arr[this->p] = root->pro;
     }
     else{
+        if(this->arr[15] != nullptr){
+            delete this->arr[15];
+            this->arr[15] = nullptr;
+        }
         Node *newnode = new Node;
         newnode->pro = new Elem(addr, cont, 1);
         root = FindParent(addr, root, newnode);
@@ -139,6 +143,10 @@ Elem* Cache::write(int addr, Data* cont) {
                     this->arr[k]->sync = 0;
         }
         else{                   //not found addrs
+            if(this->arr[15] != nullptr){
+                delete this->arr[15];
+                this->arr[15] = nullptr;
+            }
             Node *newnode = new Node;
             newnode->pro = new Elem(addr, cont, 0);
             root = FindParent(addr, root, newnode);
