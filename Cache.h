@@ -20,7 +20,7 @@ class Cache {
     
     Node *Foundingroot = new Node;
     Cache(int s) {
-        arr = new Elem*[s];
+        arr = new Elem*[s + 1];
         p = 0;
     }
     ~Cache() {
