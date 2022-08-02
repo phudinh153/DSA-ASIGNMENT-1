@@ -68,6 +68,10 @@ Elem* Cache::put(int addr, Data* cont) {
         this->arr[this->p] = root->pro;
     }
     else{
+        if(this->arr[15] != nullptr){
+            delete this->arr[15];
+            this->arr[15] = nullptr;
+        }
         Node *newnode = new Node;
         newnode->pro = new Elem(addr, cont, 1);
         root = FindParent(addr, root, newnode);
@@ -139,6 +143,10 @@ Elem* Cache::write(int addr, Data* cont) {
                     this->arr[k]->sync = 0;
         }
         else{                   //not found addrs
+            if(this->arr[15] != nullptr){
+                delete this->arr[15];
+                this->arr[15] = nullptr;
+            }
             Node *newnode = new Node;
             newnode->pro = new Elem(addr, cont, 0);
             root = FindParent(addr, root, newnode);
@@ -179,13 +187,15 @@ void Cache::print() {
     }
 }
 
-void printCayhaila(Node *MOSSforgivemeplease){
-	if (MOSSforgivemeplease != nullptr){
-		MOSSforgivemeplease->pro->print();
-		printCayhaila(MOSSforgivemeplease->left);
-		printCayhaila(MOSSforgivemeplease->right);
-        delete MOSSforgivemeplease;
-        MOSSforgivemeplease = nullptr;
+void printCayhaila(Node *root){
+	if (root != nullptr){
+		root->pro->print();
+		printCayhaila(root->left);
+		printCayhaila(root->right);
+        //delete root->pro;//
+        //root->pro = nullptr;//
+        delete root;
+        root = nullptr;
 	}
 }
 
@@ -197,7 +207,8 @@ void Cache::preOrder() {
 void Cache::inOrder() {
     Elem **newarr = new Elem*[this->p];
     for (int i = 0; i < p; i++){
-        newarr[i] = new Elem(this->arr[i]->addr, this->arr[i]->data, this->arr[i]->sync);
+        //newarr[i] = new Elem(this->arr[i]->addr, this->arr[i]->data, this->arr[i]->sync);
+        newarr[i] = this->arr[i];
     }
     for (int i = 0; i < p - 1; i++){
         for(int j = 0; j < p - i - 1; j++){
