@@ -1,223 +1,224 @@
 #include "main.h"
+Cache::Cache(SearchEngine* s,ReplacementPolicy* r):rp(r),s_engine(s) {}
+Cache::~Cache(){
+	delete rp;
+	delete s_engine;
+}
 
 
 Data* Cache::read(int addr) {
-    //cout << "1" << endl;
-    //Node *root = this->Foundingroot;
-    if(p == 0){
+    Node *root = s_engine->Foundingroot;
+    for(int i = 0; i < count; i++){
+            if(rp->heap[i]->addr == addr){
+                rp->ch[i] += 1;   
+                
+                int j;
+                for(j = 0; j < count; j++){
+                    if(s_engine->a[j]->addr == addr){
+                        break;
+                    }
+                }
+                Node *newnode = new Node;
+                newnode->pro = new Elem(addr, s_engine->a[j]->data, s_engine->a[j]->sync);
+                rp->DeleteHeap(i);
+                
+                root = s_engine->Deletenode(root, s_engine->a[j]->addr);     
+                s_engine->Foundingroot = root;
+ 
+                s_engine->a[j] = newnode->pro;
+                rp->Add(newnode->pro);  
+                root = s_engine->AddNode(addr, root, newnode);
+                
+                // for(int m = 0; m < count; m++){
+                //     cout<<m<<" " << rp->heap[m]->data->getValue() <<" ";
+                // }
+                // cout <<endl;
+                // for(int k = 0; k < count; k++){
+                //     cout<<k<<" " << rp->ch[k] <<" ";
+                // }
+                return newnode->pro->data;
+            }
+        }
+        
+    return NULL;
+}
+
+
+Elem* Cache::put(int addr, Data* cont) {
+    
+    Node *root = s_engine->Foundingroot;    
+    Elem *delNode;
+    int j;
+    bool del = 0;
+    if(count == 0){
+        root->pro = new Elem(addr, cont, 1);
+        s_engine->a[count] = root->pro;
+        rp->Add(root->pro);  
         return NULL;
     }
-    /*else if(SearchTree(addr, root)) {
-        if(root->pro){
-        return root->pro->data;
-        }
-    }*/
-    else{
-        //cout <<"bug: ";
-        //root->pro->print();
-        for(int i = 0; i < p; i++){
-            if(this->arr[i]->addr == addr){
-                return this->arr[i]->data;
-            }
-        }
+    else if(count == size){
+        for(j = 0; j < count; j++){
+                    if(s_engine->a[j]->addr == rp->heap[rp->Position(0)]->addr){
+                        del = 1;
+                        delNode = s_engine->a[j];
+                        break;
+                    }
+                }
+        root = s_engine->Deletenode(root, rp->heap[rp->Position(0)]->addr);
+        s_engine->Foundingroot = root;
+        rp->DeleteHeap(0);
+
     }
-    return NULL;
-}
-
-Node* Deletenode(Node *root, int key){
-    if(root->pro->addr > key) root->left = Deletenode(root->left, key);
-    else if(root->pro->addr < key) root->right = Deletenode(root->right, key);
-    else{
-        if(root->left == nullptr && root->right == nullptr){
-            delete root;
-            root = nullptr;
-        }
-        else if(root->left == nullptr){
-            Node *p = root;
-            root = root->right;
-            delete p;
-            p = nullptr;
-    
-        }
-        else if(root->right == nullptr){
-            Node *p = root;
-            root = root->left;
-            delete p;
-            p = nullptr;
-    
-        }
-        else{
-            Node *p = root->right;
-            while(p->left != nullptr){
-                p = p->left;
-            }
-            root->pro = p->pro;
-            root->right = Deletenode(root->right, p->pro->addr);
-        }
-    }
-
-    return root;
-
-}
-
-Elem* Cache::put(int addr, Data* cont) {  
-    //cout << "2" << endl;    
-    Node *root = this->Foundingroot;    
-    if(this->p == 0){
-        root->pro = new Elem(addr, cont, 1);
-        this->arr[this->p] = root->pro;
-    }
-    else{
-        if(this->arr[15] != nullptr){
-            delete this->arr[15];
-            this->arr[15] = nullptr;
-        }
+        // for(int m = 0; m < count; m++){
+        //             cout<<m<<" " << rp->heap[m]->data->getValue() <<" ";
+        //         }
+        //         cout <<endl;
+        //         for(int k = 0; k < count; k++){
+        //             cout<<k<<" " << rp->ch[k] <<" ";
+        //         }
+        //         cout <<endl;
         Node *newnode = new Node;
         newnode->pro = new Elem(addr, cont, 1);
-        root = FindParent(addr, root, newnode);
-        //root = SearchTree(addr, root);
-        //this->arr[this->p] = root->pro;
-    }
-    this->p++;
-    if(p == 16){
-        //arr[15]->print();
-        if(addr % 2 == 0){  //FIFO
-            //Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
-            root = Deletenode(root, root->pro->addr);
-            this->Foundingroot = root;
-            //this->arr[16] = this->arr[0];
-            for(int i = 1; i < p; i++){
-                swap(this->arr[i - 1], this->arr[i]);
-            }
-            //this->arr[16] = NULL;
-            this->p--;
-            return this->arr[15];
+        root = s_engine->AddNode(addr, root, newnode);
+        rp->ch[count] = 0;
+        rp->Add(newnode->pro);  
+        if(del){
+                s_engine->a[j] = newnode->pro;
+                return delNode;
         }
-        else{               //LIFO
-            //Elem *del = new Elem(this->arr[15]->addr, this->arr[15]->data, this->arr[15]->sync);
-            swap(this->arr[p - 2], this->arr[p - 1]);
-            root = Deletenode(root, this->arr[p - 1]->addr);
-            this->p--;
-            return this->arr[p];
-        } 
-    }
+        else{
+                s_engine->a[count-1] = newnode->pro;
+                // cout << rp->heap[0]->data->getValue() <<"0 ";
+        }
+        
+
     return NULL;
 }
-
-/*void SearchTree(int addr, Node *root){
-    if(root->pro != nullptr){ 
-        if(root->pro->addr == addr){
-            root->pro->print();
-            return;
-        }
-    }
-    else if(root->pro->addr > addr){
-        SearchTree(addr, root->left);
-    }
-    else if(root->pro->addr < addr){
-        SearchTree(addr, root->right);
-    }  
-    return;
-}*/
-
 Elem* Cache::write(int addr, Data* cont) {
-    //cout << "3" << endl;
-    Node *root = this->Foundingroot; 
-    if(this->p == 0){
+    
+    Node *root = s_engine->Foundingroot; 
+    if(count == 0){
+        
         root->pro = new Elem(addr, cont, 0);
-        this->arr[this->p] = root->pro;
-        this->p++;
+        s_engine->a[count] = root->pro;
+        rp->Add(s_engine->a[count]);  
+        return NULL;
     }
     else{
-        int k;  
-        for(k = 0; k < p; k++){
-            if(this->arr[k] != nullptr){
-                if(this->arr[k]->addr == addr){
-                    break;
-                }
-            }
-        }     
         
-        if(this->arr[k] != nullptr && this->arr[k]->addr == addr && k != 15){        //if found addr
-                    this->arr[k]->data = cont;
-                    this->arr[k]->sync = 0;
-        }
-        else{                   //not found addrs
-            if(this->arr[15] != nullptr){
-                delete this->arr[15];
-                this->arr[15] = nullptr;
+        for(int i = 0; i < count; i++){
+            
+            if(rp->heap[i]->addr == addr){
+                
+                rp->ch[i] += 1;   
+                int j;
+                for(j = 0; j < count; j++){
+                    if(s_engine->a[j]->addr == addr){
+                        break;
+                    }
+                }
+                
+                rp->DeleteHeap(i);
+                
+                root = s_engine->Deletenode(root, s_engine->a[j]->addr);
+                s_engine->Foundingroot = root;
+                Node *newnode = new Node;
+                newnode->pro = new Elem(addr, cont, 0);
+                s_engine->a[j] = newnode->pro;
+                rp->Add(newnode->pro);  
+                root = s_engine->AddNode(addr, root, newnode);
+                return NULL;
             }
+        }
+        
+        int j;
+        bool del = 0;
+        Elem *delNode;
+        if(count == size){
+            //s_engine->Deletenode(root, a[])
+            
+                for(j = 0; j < count; j++){
+                    if(s_engine->a[j]->addr == rp->heap[rp->Position(0)]->addr){
+                        del = 1;
+                        delNode = s_engine->a[j];
+                        break;
+                    }
+                }
+                //cout << 1 <<endl;
+            root = s_engine->Deletenode(root, rp->heap[rp->Position(0)]->addr);
+            
+            rp->DeleteHeap(0);
+
+        }
             Node *newnode = new Node;
             newnode->pro = new Elem(addr, cont, 0);
-            root = FindParent(addr, root, newnode);
-                //root = SearchTree(addr, root);
-                //this->arr[this->p] = newnode->pro;
-            this->p++;
-        }    
-            if(p == 16){
-                if(addr % 2 == 0){  //FIFO
-                    //Elem *del = new Elem(this->arr[0]->addr, this->arr[0]->data, this->arr[0]->sync);
-                    root = Deletenode(root, root->pro->addr);
-                    this->Foundingroot = root;
-                    //this->arr[16] = this->arr[0];
-                    for(int i = 1; i < p; i++){
-                        swap(this->arr[i - 1], this->arr[i]);
-                    }
-                    //this->arr[16] = NULL;
-                    this->p--;  
-                    return this->arr[15];
-                }
-                else{               //LIFO
-                    //Elem *del = new Elem(this->arr[15]->addr, this->arr[15]->data, this->arr[15]->sync);
-                    swap(this->arr[p - 2], this->arr[p - 1]);
-                    root = Deletenode(root, this->arr[p - 1]->addr);
-                    this->p--;
-                    return this->arr[p];
-                } 
+            root = s_engine->AddNode(addr, root, newnode);
+            rp->ch[count] = 0;
+            rp->Add(newnode->pro);  
+            if(del){
+                s_engine->a[j] = newnode->pro;
+                return delNode;
             }
-        
-    }
+            else{
+                s_engine->a[count-1] = newnode->pro;
+            }
+            
 
+    }
     return NULL;
 }
+void Cache::printRP() {
+    rp->printHeap();
+}
+void Cache::printSE() {
+    // s_engine->Foundingroot->pro->print();
+    Node *root = s_engine->Foundingroot;
+   
+    cout <<"Print BST in inorder:"<<endl;
+    s_engine->InOrder(s_engine->Foundingroot);
+    cout <<"Print BST in preorder:"<<endl;
+    s_engine->PreOrder(s_engine->Foundingroot);
+    
+}
+int HashKey(int d){
+    return d%count;
+}
 
-void Cache::print() {
-	for (int i = p - 1; i >= 0; i--){
-        arr[i]->print();
+void Cache::printLP() {
+    cout <<"Prime memory"<<endl;
+    for(int i = 0; i < count; i++ ){
+        s_engine->a[i]->print();
     }
-}
-
-void printCayhaila(Node *MOSSforgivemeplease){
-	if (MOSSforgivemeplease != nullptr){
-		MOSSforgivemeplease->pro->print();
-		printCayhaila(MOSSforgivemeplease->left);
-		printCayhaila(MOSSforgivemeplease->right);
-        delete MOSSforgivemeplease;
-        MOSSforgivemeplease = nullptr;
-	}
-}
-
-void Cache::preOrder() {
-	Node *root = this->Foundingroot;
-    printCayhaila(root);
-}
-
-void Cache::inOrder() {
-    Elem **newarr = new Elem*[this->p];
-    for (int i = 0; i < p; i++){
-        //newarr[i] = new Elem(this->arr[i]->addr, this->arr[i]->data, this->arr[i]->sync);
-        newarr[i] = this->arr[i];
+    cout <<"Hash table memory"<<endl;
+    Elem **Hash = new Elem*[count];
+    int i = 0; //Hash count
+    int key;
+    for(int m = 0; m < count; m++){
+        Hash[m] = nullptr;
     }
-    for (int i = 0; i < p - 1; i++){
-        for(int j = 0; j < p - i - 1; j++){
-            if(newarr[j]->addr > newarr[j + 1]->addr){
-                swap(newarr[j], newarr[j + 1]);
+    while(i < count){
+        key = HashKey(s_engine->a[i]->addr);
+        bool hashed = 0;
+        while(!hashed){
+            if(!Hash[key]){
+                Hash[key] = s_engine->a[i];
+                hashed = 1;
+                break;
+            }
+            else{
+                if(key + 1 == count){
+                    key = 0;
+                }
+                else{
+                    key++;
+                }
             }
         }
-    }
-    for (int i = 0; i < p; i++){
-        newarr[i]->print();
-    }
-    delete[] newarr;
-}
+        i++;
 
+    }
+    for(int i = 0; i < count; i++ ){
+        Hash[i]->print();
+    }
+    delete[] Hash;
+}
